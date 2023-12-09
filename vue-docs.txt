@@ -1,0 +1,349 @@
+-- #COMPONENT ROOT -- 
+
+
+import { createApp } from 'vue' --> criar app
+
+import App from './App.vue' // --> componente raiz
+
+createApp(App).mount('#app') // --> conteudo do componente raiz vai ser rederizado dentro do container 
+
+
+
+
+-- #REF --  
+
+
+import { ref } from 'vue';
+
+
+const count = ref(0)  //  maneira de declarar um estado reativo, recebe um argumento e retorna um objeto com uma propriedade acessivel chamado 'value'
+
+
+console.log(count.value) // mostar o valor do estado reativo
+
+
+console.log(count) // mostra o objeto criado apartir do estado reativo
+
+
+count.value++ // mudando o valor padrão do estado
+
+
+console.log(count.value)
+
+
+
+
+
+---  #SETUP  --- 
+
+
+
+--> Maneira de Acessar e mostar os dados de uma referencia
+
+<script>
+
+import { ref } from 'vue';
+
+export default {
+
+  setup(){  --> Para deixar a referencia acessivel para o template mostrar
+      
+      const count = ref(0)
+      
+      return {
+        count  --> retornar o valor do count ,não precisa retornar o count.value, por padrão as  referencias são desembrulhadas quando acessadas no template
+      }
+  }
+
+}
+</script>
+
+
+
+<template>
+   <body>
+
+     <div>{{count}}</div>  --> mostrando a referencia  
+     <p>{{count}}</p>
+
+</body>
+</template>
+
+
+
+
+
+
+-- #EVENTOS COM REFS -- 
+
+
+--> alterar a referencia diretamente no manipulador de evento
+     
+     <button @click="count++">CLIQUE</button> 
+     <p>{{count}}</p>
+ 
+
+--> alterando o valor da ref com funções 
+
+<script>
+import { ref } from 'vue';
+
+export default {
+  setup(){
+      const count = ref(0)
+      
+      function increment() { 
+        count.value++
+      }
+
+      return {
+         count,
+         increment
+      }
+  }
+
+}
+
+</script>
+
+<template>
+   <body>
+      <button @click="increment">CLIQUE</button> -->  posso chamar uma função -> increment
+      <p>{{count}}</p>
+
+    </body>
+</template>
+
+
+
+
+
+
+# --- USANDO SFCs(COMPONENTES DE ARQUIVOS ÚNICO --- #
+
+Posso acessar o retorno do count sem precisar de setup, apenas informando ao script a propriedade setup
+
+<script setup>
+
+	import { ref } from 'vue';
+
+	const count = ref(0)
+	function increment() {
+		count.value++
+ 	}
+	
+<template>
+   <body>
+      <button @click="increment">CLIQUE</button>
+      <p>{{count}}</p>
+
+    </body>
+</template>
+
+
+</script>
+
+
+
+
+
+
+
+
+# -- POR QUE REFS ? -- # 
+
+
+
+Quando um componente é renderizado pela primeira vez, o Vue rastreia cada referência usada durante a renderização. Mais tarde, quando uma referência sofre mutação, ela acionará uma nova renderização para os componentes que a estão rastreando
+
+
+No JavaScript padrão, não há como detectar o acesso ou mutação de variáveis ​​simples.
+
+
+
+
+
+
+
+
+
+
+# --  REATIVIDADE PROFUNDA -- # 
+  
+
+
+
+Refs pode conter qualquer tipo de valor, incluindo objetos profundamente aninhados, matrizes ou estruturas de dados integradas em JavaScript, como Map.
+
+
+
+<script setup>
+
+  import { ref } from 'vue';
+
+  const obj = ref ({
+    nested:{count:0},
+    arr:['foo','bar'],
+  })    
+  
+  function mutateDeeply(){
+    obj.value.nested.count++,
+    obj.value.arr.push('baz')
+  }
+
+</script>
+
+
+<template>
+
+<button @click="mutateDeeply">CLIQUE</button>
+      <p>{{ obj.nested }}</p>
+      <p>{{ obj.arr }}</p>
+
+</template>
+
+
+
+
+
+
+# -- TEMPO DE ATUALIZAÇÃO DA DOM -- #
+
+
+
+Para aguardar a conclusão da atualização do DOM após uma mudança de estado, você pode usar a API global nextTick()
+
+
+
+import { nextTick } from 'vue'
+
+async function increment() {
+  count.value++
+  await nextTick()
+  // Now the DOM is updated
+}
+
+
+
+
+
+
+
+# -- REACTIVE() -- #
+
+
+
+Objetos reativos são proxies JavaScript e se comportam como objetos normais. A diferença é que o Vue é capaz de interceptar o acesso e a mutação de todas as propriedades de um objeto reativo para rastreamento e acionamento da reatividade.
+
+
+
+reactive() --> torna o próprio objeto reativo, sem precisa-lo envolver com um objeto especial igual ao ref
+
+
+import { reactive } from 'vue'
+
+
+const state = reactive({ count: 0 }) --> o acesso e modificação é feito de maneira normal do js
+
+
+<button @click="state.count++"> --> não precisamos de .value para acessar o o valor
+  {{ state.count }}
+</button>
+
+
+
+
+
+
+
+# -- PROXY REATIVO VS ORIGINAL -- #
+
+
+
+
+É importante observar que o valor retornado de reactive()é um Proxy do objeto original, que não é igual ao objeto original:
+
+
+const raw = {}
+const proxy = reactive(raw)
+
+// proxy is NOT equal to the original.
+console.log(proxy === raw) // false
+
+
+Portanto, a melhor prática ao trabalhar com o sistema de reatividade do Vue é usar exclusivamente as versões proxy do seu estado .
+
+
+Para garantir acesso consistente ao proxy, chamar reactive()o mesmo objeto sempre retorna o mesmo proxy, e chamar reactive()um proxy existente também retorna o mesmo proxy:
+
+
+
+// calling reactive() on the same object returns the same proxy
+console.log(reactive(raw) === proxy) // true
+
+// calling reactive() on a proxy returns itself
+console.log(reactive(proxy) === proxy) // true
+
+
+
+
+
+
+
+
+# -- COMPARAÇÕES DE ESTRUTURA -- #
+
+
+const raw = {}
+const proxy = reactive(raw)
+
+
+proxy -->  Proxy(Object) {}[[Handler]]: MutableReactiveHandler[[Target]]: Object[[IsRevoked]]: false
+
+raw --> {}[[Prototype]]: Object
+
+
+
+
+
+
+
+# -- REF OU REACTIVE -- #
+
+
+ref:
+
+
+Objetos Simples: Use ref para criar uma reatividade em objetos simples, como strings, números, booleanos, (Variaveis Primitivas).
+
+Acesso Direto: ref é útil quando você precisa de acesso direto à propriedade reativa.
+Exemplo:
+
+Ex:
+
+import { ref } from 'vue';
+
+const count = ref(0);
+
+
+
+reactive:
+
+
+Objetos Complexos: Use reactive para criar reatividade em objetos complexos, como objetos aninhados ou arrays.
+
+Agrupamento de Dados: reactive é útil quando você quer agrupar dados relacionados em um único objeto reativo.
+
+Ex:
+
+import { reactive } from 'vue';
+
+const state = reactive({
+  user: {
+    name: 'John',
+    age: 30
+  },
+  items: ['item1', 'item2']
+});
+
+
