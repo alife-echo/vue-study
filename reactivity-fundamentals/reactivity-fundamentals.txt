@@ -347,3 +347,58 @@ const state = reactive({
 });
 
 
+
+
+
+
+
+
+ --  LIMITAÇÕES reactive() -- 
+
+
+1 - Tipos de Valor Limitado
+
+reactive não poder conter tipos primitivos
+
+
+
+2 - Não é possivel substituir objeto inteiro
+
+let state = reactive({count:0})
+
+state = reactive({count:1}) --> Perda de conexão com a reatividade porque o state ja foi trackeado
+
+
+3 -  Não amigável à desestruturação
+
+const state = reactive({ count: 0 })
+
+let { count } = state --> perda de conexão com a reatividade por causa da desestruturação
+
+count++ --> o state não é afetado, o valor de state não é mutado
+
+se eu printar o count o mesmo mostrará o valor incrementado, porem o state com  a reatividade não sofrera a mudança de valor
+
+
+
+
+------ DETALHES SOBRE DESEMBRULHAMENTO DE REF ------
+
+
+const count = ref(0)
+const state = reactive({count}) --> posso guardar uma referencia dentro de um reactive
+console.log(state.count) --> 0 valor inicial do state, porque count foi declarado com 0
+state.count = 1 --> adicionando um valor ao count por meio do reactive do state
+console.log(count.value) 1 --> novo valor de count
+
+Conclusão : posso modificar o valor de um ref por meio de um reactive que recebe esse ref
+
+
+#Observação = agora se eu reatribuir o state.count com outro ref eu perco a conexão com o primeiro ref
+
+const otherCount = ref(2)
+
+state.count = otherCount
+console.log(state.count) --> 2
+// original ref is now disconnected from state.count
+console.log(count.value) --> 1

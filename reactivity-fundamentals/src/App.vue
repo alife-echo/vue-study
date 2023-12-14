@@ -3,6 +3,27 @@
   import { nextTick, reactive, ref } from 'vue';
 
   const count = ref(0)
+  const state = reactive({count})
+  const books = reactive([ref('Vue 3 Guide')])
+// need .value here
+  console.log('book',books[0].value)
+
+const map = reactive(new Map([['count', ref(0)]]))
+// need .value here
+console.log('counts',map.get('count').value)
+  console.log(books[0].value)
+  console.log(map.get('count').value)
+  console.log(state.count)
+  state.count = 1
+  console.log(count.value)
+  console.log(' -------------------------- ')
+  const otherCount = ref(2)
+  state.count = otherCount
+  console.log(state.count)
+  console.log(count.value)
+
+  const countProblems = reactive({countP:0})
+  countProblems.countP++
   const obj = ref ({
     nested:{count:0},
     arr:['foo','bar'],
@@ -21,6 +42,8 @@
     data.value = 'carregado'
     console.log('proxy --> ',proxy)
     console.log('raw -->',raw)
+    console.log('c original',countProblems)
+    console.log('c',countProblems.countP)
   }
 </script>
 
@@ -32,6 +55,7 @@
       <p>{{ obj.nested }}</p>
       <p>{{ obj.arr }}</p>
       <p>{{data}}</p>
+      <p>countP</p>
     </body>
 </template>
 
